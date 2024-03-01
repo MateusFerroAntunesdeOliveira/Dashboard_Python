@@ -1,5 +1,4 @@
 import pandas as pd
-import numpy as np
 import streamlit as st
 import matplotlib.pyplot as plt
 import datetime
@@ -136,5 +135,4 @@ def start():
     plt.ylabel("Valores de Temperatura (°C)")
     plt.legend()
     st.pyplot(fig)
-    
     
