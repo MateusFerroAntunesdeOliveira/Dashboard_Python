@@ -1,10 +1,16 @@
 ## Dashboard Python Project
 
-Projeto de um dashboard em Python que utiliza as bibliotecas Matplotlib, Pandas e Streamlit para visualização de dados.
+<p align="justify">
+    Projeto de um dashboard em Python que utiliza as bibliotecas Matplotlib, Pandas e Streamlit para visualização de dados.
+</p>
 
-O projeto consiste em ler um arquivo .txt a partir de um diretório local (proveniente do resultado do repositório MQTT_TTN_Python), extrair os dados necessários, como o payload de envio, e então exibir esses dados em um dashboard.
+<p align="justify">
+    O projeto consiste em ler um arquivo .txt a partir de um diretório local (proveniente do resultado do repositório MQTT_TTN_Python), extrair os dados necessários, como o payload de envio, e então exibir esses dados em um dashboard.
+</p>
 
-Desenvolvido para fins de estudo e aprendizado, e tem como objetivo principal fornecer a parte final de visualização dos dados coletados pelo repositório MQTT_TTN_Python - envolvendo um Broker MQTT, um dispositivo LoRaWAN, um Gateway e a plataforma The Things Network (TTN).
+<p align="justify">
+    Desenvolvido para fins de estudo e aprendizado, e tem como objetivo principal fornecer a parte final de visualização dos dados coletados pelo repositório MQTT_TTN_Python - envolvendo um Broker MQTT, um dispositivo LoRaWAN, um Gateway e a plataforma The Things Network (TTN).
+</p>
 
 ## Tecnologias utilizadas:
 - Python
