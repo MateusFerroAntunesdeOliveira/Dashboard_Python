@@ -2,6 +2,8 @@ import pandas as pd
 import streamlit as st
 import matplotlib.pyplot as plt
 import datetime
+import plotly.express as px
+from dash import Dash, html, dcc
 
 BatV = "BatV"
 Bat_status = "Bat_status"
@@ -11,13 +13,17 @@ TempC_DS = "TempC_DS"
 TempC_SHT = "TempC_SHT"
 inputFileName = "20240301.txt"
 outputFileName = "output.csv"
+inputFileDirectory = "C:\\Users\\Mateus\\Documents\\GitHub\\MQTT_TTN_Python\\"
+outputDirectory = "C:\\Users\\Mateus\\Documents\\GitHub\\Dashboard_Python\\output\\"
+
+app = Dash(__name__)
 
 def defineInputFileDirectory():
     # FIXME - Change the input file directory to the correct one
     global inputFileName
-    # fileName = str(input("\nEnter the input file name: "))
-    inputFileDirectory = "C:\\Users\\Mateus\\Documents\\GitHub\\MQTT_TTN_Python\\" + inputFileName
-    return inputFileDirectory
+    # inputFileName = str(input("\nEnter the input file name: "))
+    file = inputFileDirectory + inputFileName
+    return file
 
 def readInputFile(inputFileDirectory):
     decodedValue = []
@@ -109,31 +115,42 @@ def createDataFrame(formatedTime, batV, batStatus, extSensor, humidity_SHT, temp
     return df
 
 def writeCsvFile(df):
-    outputDirectory = "C:\\Users\\Mateus\\Documents\\GitHub\\Dashboard_Python\\output\\"
-    df.to_csv(outputDirectory + outputFileName, index = False)
+    df.to_csv(outputDirectory + outputFileName, index = True)
 
 def plotGraph(df):
-    st.header(f"Data Frame from Payload: {inputFileName}")
-    st.table(df)
+    global app
+    df = pd.read_csv(outputDirectory + outputFileName)
+    temperatureFig = createFigure(df, ['TemperatureC_DS', 'TemperatureC_SHT'], "Temperature", " (°C)")
+    humidityFig = createFigure(df, ['Humidity_SHT'], "Humidity", " (%)")
 
-    fig = plt.figure(figsize = (8,4))
-    plt.plot(df['DateTime'], df['TemperatureC_DS'], label = "TemperatureC_DS")
-    plt.plot(df['DateTime'], df['TemperatureC_SHT'], label = "TemperatureC_SHT")
-    plt.xlabel("Horário da Leitura (HH:MM:SS)")
-    plt.ylabel("Valores de Temperatura (°C)")
-    plt.legend()
-    st.pyplot(fig)
+    app.layout = html.Div([
+        dcc.Graph(figure=temperatureFig, id='temperature-graph', style={'height': '100vh'}),
+        dcc.Graph(figure=humidityFig, id='humidity-graph', style={'height': '100vh'})
+    ])
+
+    app.run_server(debug=True)
+
+def createFigure(df, columns, title, unit):
+    temperatureFig = px.line(
+        df,
+        title = title + " Data from '" + inputFileName + "' file.",
+        x='DateTime', y=columns,
+        range_x=[datetime.datetime.strptime(df['DateTime'][0], "%H:%M:%S"), datetime.datetime.strptime(df['DateTime'][len(df)-1], "%H:%M:%S")],
+        labels={'DateTime': 'Time (HH:MM:SS)', 'value': title + unit},
+        markers=True,
+        template="seaborn"
+    )
+    return temperatureFig
 
 def start():
     inputFileDirectory = defineInputFileDirectory()
     decodedValue, readTime = readInputFile(inputFileDirectory)
-    batV, batStatus, extSensor, humidity_SHT, temperatureC_DS, temperatureC_SHT = extractPayloadData(decodedValue)
     time = formatTime(readTime)
+    batV, batStatus, extSensor, humidity_SHT, temperatureC_DS, temperatureC_SHT = extractPayloadData(decodedValue)
+
     df = createDataFrame(time, batV, batStatus, extSensor, humidity_SHT, temperatureC_DS, temperatureC_SHT)
     writeCsvFile(df)
     plotGraph(df)
 
 def main():
     start()
-
-
