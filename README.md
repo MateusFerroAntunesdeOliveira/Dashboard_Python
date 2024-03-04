@@ -1,7 +1,7 @@
 ## Dashboard Python Project
 
 <p align="justify">
-    Projeto de um dashboard em Python que utiliza as bibliotecas Matplotlib, Pandas e Dash para visualização de dados.
+    Projeto de um dashboard em Python que utiliza as bibliotecas Pandas e Dash para visualização de dados.
 </p>
 
 <p align="justify">
@@ -14,10 +14,8 @@
 
 ## Tecnologias utilizadas:
 - Python
-- Matplotlib
 - Pandas
 - Dash e Plotly
-- Numpy
 
 ## Pré-requisitos:
 - Python 3.8 ou superior
