@@ -1,7 +1,8 @@
 import datetime
 import pandas as pd
 import plotly.express as px
-from dash import Dash, html, dcc
+from dash import Dash, html, dcc, Input, Output
+from dash.exceptions import PreventUpdate
 
 BatV = "BatV"
 Bat_status = "Bat_status"
@@ -17,9 +18,7 @@ outputDirectory = "C:\\Users\\Mateus\\Documents\\GitHub\\Dashboard_Python\\outpu
 app = Dash(__name__)
 
 def defineInputFileDirectory():
-    # FIXME - Change the input file directory to the correct one
     global inputFileName
-    # inputFileName = str(input("\nEnter the input file name: "))
     file = inputFileDirectory + inputFileName
     return file
 
@@ -58,34 +57,25 @@ def extractPayloadData(dataCollect):
     dataCollect = list(map(lambda x: x.replace("'", ""), dataCollect))
     dataCollect = list(map(lambda x: x.split(separator), dataCollect))
 
-    # DEBUG
-    # print()
-    for i in range(len(dataCollect)):
-        # print(f"Each Data Collect: {dataCollect[i]}")
-        
+    for i in range(len(dataCollect)):        
         for j in range(len(dataCollect[i])):
             dataCollect[i][j] = dataCollect[i][j].replace(" ", "").split(':')
 
             if dataCollect[i][j][0] == BatV:
                 batVList.append(dataCollect[i][j][1])
-            # Get BatStatus for each data collect
 
             if dataCollect[i][j][0] == Bat_status:
                 batStatusList.append(dataCollect[i][j][1])
-            # Get ExtSensor for each data collect
 
             if dataCollect[i][j][0] == Ext_sensor:
                 extSensorList.append(dataCollect[i][j][1])
-            # Get HumiditySHT for each data collect
 
             if dataCollect[i][j][0] == Hum_SHT:
                 humidity_SHTList.append(dataCollect[i][j][1])
-            # Get TemperatureDS for each data collect
 
             if dataCollect[i][j][0] == TempC_DS:
                 temperatureC_DSList.append(dataCollect[i][j][1])
-            # Get TemperatureSHT for each data collect
-            
+
             if dataCollect[i][j][0] == TempC_SHT:
                 temperatureC_SHTList.append(dataCollect[i][j][1])
             
@@ -115,18 +105,6 @@ def createDataFrame(formatedTime, batV, batStatus, extSensor, humidity_SHT, temp
 def writeCsvFile(dataFrame):
     dataFrame.to_csv(outputDirectory + outputFileName, index = True)
 
-def plotGraph(dataFrame):
-    global app
-    dataFrame = pd.read_csv(outputDirectory + outputFileName)
-    temperatureFig = createFigure(dataFrame, ['TemperatureC_DS', 'TemperatureC_SHT'], "Temperature", " (°C)")
-    humidityFig = createFigure(dataFrame, ['Humidity_SHT'], "Humidity", " (%)")
-
-    app.layout = html.Div([
-        dcc.Graph(figure=temperatureFig, id='temperature-graph', style={'height': '100vh'}),
-        dcc.Graph(figure=humidityFig, id='humidity-graph', style={'height': '100vh'}),
-    ])
-    app.run_server(debug=True)
-
 def createFigure(dataFrame, columns, title, unit):
     temperatureFig = px.line(
         dataFrame,
@@ -139,15 +117,43 @@ def createFigure(dataFrame, columns, title, unit):
     )
     return temperatureFig
 
-def setup():
-    inputFileDirectory = defineInputFileDirectory()
-    decodedValue, readTime = readInputFile(inputFileDirectory)
-    formattedDateTime = formatTime(readTime)
-    batV, batStatus, extSensor, humidity_SHT, temperatureC_DS, temperatureC_SHT = extractPayloadData(decodedValue)
+@app.callback(
+    [Output('temperature-graph', 'figure'),
+     Output('humidity-graph', 'figure')],
+    [Input('interval-component', 'n_intervals')]   
+)
+def update_graph(n_intervals):
+    try:
+        inputFileDirectory = defineInputFileDirectory()
+        decodedValue, readTime = readInputFile(inputFileDirectory)
+        formattedDateTime = formatTime(readTime)
+        batV, batStatus, extSensor, humidity_SHT, temperatureC_DS, temperatureC_SHT = extractPayloadData(decodedValue)
 
-    dataFrame = createDataFrame(formattedDateTime, batV, batStatus, extSensor, humidity_SHT, temperatureC_DS, temperatureC_SHT)
-    writeCsvFile(dataFrame)
-    plotGraph(dataFrame)
+        dataFrame = createDataFrame(formattedDateTime, batV, batStatus, extSensor, humidity_SHT, temperatureC_DS, temperatureC_SHT)
+        writeCsvFile(dataFrame)
+
+        temperatureFig = createFigure(dataFrame, ['TemperatureC_DS', 'TemperatureC_SHT'], "Temperature", " (°C)")
+        humidityFig = createFigure(dataFrame, ['Humidity_SHT'], "Humidity", " (%)")
+
+        return temperatureFig, humidityFig
+
+    except PreventUpdate:
+        raise PreventUpdate
+
+def setup():
+    app.layout = html.Div([
+        dcc.Interval(
+            id='interval-component',
+            interval=3000,  # in milliseconds
+            n_intervals=0
+        ),
+        dcc.Graph(id='temperature-graph', style={'height': '50vh'}),
+        dcc.Graph(id='humidity-graph', style={'height': '50vh'})
+    ])
 
 def main():
     setup()
+    app.run_server(debug=True)
+
+if __name__ == "__main__":
+    main()
