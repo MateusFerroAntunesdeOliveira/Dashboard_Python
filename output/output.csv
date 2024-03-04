@@ -1,5 +1,10 @@
 ,DateTime,BatV,BatStatus,ExtSensor,Humidity_SHT,TemperatureC_DS,TemperatureC_SHT
 0,12:26:30,2.976,3,TemperatureSensor,47.9,25.18,25.6
 1,12:27:30,2.974,3,TemperatureSensor,47.6,25.25,25.61
-2,12:28:30,2.975,3,TemperatureSensor,47.7,25.25,25.57
+2,12:28:30,2.975,3,TemperatureSensor,47.7,24.25,25.57
 3,12:29:30,2.977,3,TemperatureSensor,47.9,25.18,25.57
+4,12:30:30,2.980,3,TemperatureSensor,47.2,25.10,25.70
+5,12:31:30,2.981,3,TemperatureSensor,47.4,26.10,25.80
+6,12:32:30,2.982,3,TemperatureSensor,47.7,26.40,25.75
+7,12:33:30,2.983,3,TemperatureSensor,47.3,25.60,25.90
+8,12:34:30,2.984,3,TemperatureSensor,47.2,25.20,25.50

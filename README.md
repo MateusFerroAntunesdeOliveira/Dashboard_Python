@@ -24,7 +24,7 @@
 ## Como executar:
 1. Clone o repositório
 2. Instale as dependências (`python -m pip install -r requirements.txt`)
-3. Abra o terminal na pasta do projeto e execute o comando `python app.py`
+3. Abra o terminal na pasta do projeto e execute o comando `python main.py`
 4. O dashboard será aberto em seu navegador padrão no link `http://127.0.0.1:8050/`
 
 ## Autor:
