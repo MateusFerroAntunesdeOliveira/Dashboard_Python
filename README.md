@@ -1,11 +1,11 @@
 ## Dashboard Python Project
 
 <p align="justify">
-    Projeto de um dashboard em Python que utiliza as bibliotecas Matplotlib, Pandas e Streamlit para visualização de dados.
+    Projeto de um dashboard em Python que utiliza as bibliotecas Matplotlib, Pandas e Dash para visualização de dados.
 </p>
 
 <p align="justify">
-    O projeto consiste em ler um arquivo .txt a partir de um diretório local (proveniente do resultado do repositório MQTT_TTN_Python), extrair os dados necessários, como o payload de envio, e então exibir esses dados em um dashboard.
+    O projeto consiste em ler um arquivo .txt a partir de um diretório local (proveniente do resultado do repositório MQTT_TTN_Python), extrair os dados necessários (payload de envio), gerar um arquivo .csv resultante, e então exibir esses dados em um dashboard.
 </p>
 
 <p align="justify">
@@ -16,7 +16,7 @@
 - Python
 - Matplotlib
 - Pandas
-- Streamlit
+- Dash e Plotly
 - Numpy
 
 ## Pré-requisitos:
@@ -26,11 +26,11 @@
 ## Como executar:
 1. Clone o repositório
 2. Instale as dependências (`python -m pip install -r requirements.txt`)
-3. Abra o terminal na pasta do projeto e execute o comando `streamlit run app.py`
-4. O dashboard será aberto em seu navegador padrão no link `http://localhost:8501`
+3. Abra o terminal na pasta do projeto e execute o comando `python app.py`
+4. O dashboard será aberto em seu navegador padrão no link `http://127.0.0.1:8050/`
 
 ## Autor:
 <a href="https://github.com/mateusferroantunesdeoliveira"><img src="https://avatars.githubusercontent.com/u/53230135?v=4" width="100px;" alt=""/><br /><sub><b>Mateus Ferro Antunes de Oliveira</b></sub></a>
 
 ## 
-Projeto desenvolvido e finalizado em 03/2024
+Projeto em desenvolvimento - 03/2024
