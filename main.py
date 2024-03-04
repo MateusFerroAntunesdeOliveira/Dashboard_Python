@@ -98,9 +98,7 @@ def createDataFrame(formatedTime, batV, batStatus, extSensor, humidity_SHT, temp
         "TemperatureC_DS": tempC_DS,
         "TemperatureC_SHT": tempC_SHT
     }
-
-    dataFrame = pd.DataFrame(data)
-    return dataFrame
+    return pd.DataFrame(data)
 
 def writeCsvFile(dataFrame):
     dataFrame.to_csv(outputDirectory + outputFileName, index = True)
@@ -110,13 +108,13 @@ def createFigure(dataFrame, columns, title, unit):
         dataFrame,
         title = title + " Data from '" + inputFileName + "' file.",
         x='DateTime', y=columns,
-        range_x=[datetime.datetime.strptime(dataFrame['DateTime'][0], "%H:%M:%S"), datetime.datetime.strptime(dataFrame['DateTime'][len(dataFrame)-1], "%H:%M:%S")],
         labels={'DateTime': 'Time (HH:MM:SS)', 'value': title + unit},
         markers=True,
         template="seaborn"
     )
     return temperatureFig
 
+# Callback to update the graph every X seconds
 @app.callback(
     [Output('temperature-graph', 'figure'),
      Output('humidity-graph', 'figure')],
@@ -132,7 +130,7 @@ def update_graph(n_intervals):
         dataFrame = createDataFrame(formattedDateTime, batV, batStatus, extSensor, humidity_SHT, temperatureC_DS, temperatureC_SHT)
         writeCsvFile(dataFrame)
 
-        temperatureFig = createFigure(dataFrame, ['TemperatureC_DS', 'TemperatureC_SHT'], "Temperature", " (°C)")
+        temperatureFig = createFigure(dataFrame, ['TemperatureC_DS'], "Temperature", " (°C)")
         humidityFig = createFigure(dataFrame, ['Humidity_SHT'], "Humidity", " (%)")
 
         return temperatureFig, humidityFig
@@ -147,8 +145,8 @@ def setup():
             interval=3000,  # in milliseconds
             n_intervals=0
         ),
-        dcc.Graph(id='temperature-graph', style={'height': '50vh'}),
-        dcc.Graph(id='humidity-graph', style={'height': '50vh'})
+        dcc.Graph(id='temperature-graph', style={'height': '100vh'}),
+        dcc.Graph(id='humidity-graph', style={'height': '100vh'})
     ])
 
 def main():
