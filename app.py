@@ -1,4 +1,4 @@
-from main import start
+from main import setup
 
 if __name__ == "__main__":
-    start()
+    setup()
