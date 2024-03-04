@@ -9,13 +9,14 @@ Ext_sensor = "Ext_sensor"
 Hum_SHT = "Hum_SHT"
 TempC_DS = "TempC_DS"
 TempC_SHT = "TempC_SHT"
-fileName = "20240301.txt"
+inputFileName = "20240301.txt"
+outputFileName = "output.csv"
 
 def defineInputFileDirectory():
     # FIXME - Change the input file directory to the correct one
-    global fileName
-    # fileName = str(input("\nEnter the file name: "))
-    inputFileDirectory = "C:\\Users\\Mateus\\Documents\\GitHub\\MQTT_TTN_Python\\" + fileName
+    global inputFileName
+    # fileName = str(input("\nEnter the input file name: "))
+    inputFileDirectory = "C:\\Users\\Mateus\\Documents\\GitHub\\MQTT_TTN_Python\\" + inputFileName
     return inputFileDirectory
 
 def readInputFile(inputFileDirectory):
@@ -40,7 +41,7 @@ def readInputFile(inputFileDirectory):
     
     return decodedValue, time
 
-def collectDataFromPayload(dataCollect):
+def extractPayloadData(dataCollect):
     separator = ","
     batVList = []
     batStatusList = []
@@ -86,8 +87,16 @@ def collectDataFromPayload(dataCollect):
             
     return batVList, batStatusList, extSensorList, humidity_SHTList, temperatureC_DSList, temperatureC_SHTList
 
-def createDataFrame(batV, batStatus, extSensor, humidity_SHT, tempC_DS, tempC_SHT):
+def formatTime(time):
+    formatedTime = []
+    for i in range(len(time)):
+        extractedDate = datetime.datetime.strptime(time[i], "%Y-%m-%dT%H:%M:%S.%f")
+        formatedTime.append(extractedDate.strftime("%H:%M:%S"))    
+    return formatedTime
+
+def createDataFrame(formatedTime, batV, batStatus, extSensor, humidity_SHT, tempC_DS, tempC_SHT):
     data = {
+        "DateTime": formatedTime,
         "BatV": batV,
         "BatStatus": batStatus,
         "ExtSensor": extSensor,
@@ -99,40 +108,32 @@ def createDataFrame(batV, batStatus, extSensor, humidity_SHT, tempC_DS, tempC_SH
     df = pd.DataFrame(data)
     return df
 
-def start(): 
-    inputFileDirectory = defineInputFileDirectory()
-    decodedValue, readTime = readInputFile(inputFileDirectory)
-    batV, batStatus, extSensor, humidity_SHT, temperatureC_DS, temperatureC_SHT = collectDataFromPayload(decodedValue)
-    
-    # DEBUG
-    # print(f"\nBatV: {batV}")
-    # print(f"BatStatus: {batStatus}")
-    # print(f"ExtSensor: {extSensor}")
-    # print(f"Humidity_SHT: {humidity_SHT}")
-    # print(f"TemperatureC_DS: {temperatureC_DS}")
-    # print(f"TemperatureC_SHT: {temperatureC_SHT}")
-    # print(f"Time: {readTime}\n")
-    
-    formatedTime = []
-    for i in range(len(readTime)):
-        hour = datetime.datetime.strptime(readTime[i], "%Y-%m-%dT%H:%M:%S.%f")
-        formatedHour = hour.strftime("%H:%M:%S")
-        formatedTime.append(formatedHour)    
+def writeCsvFile(df):
+    outputDirectory = "C:\\Users\\Mateus\\Documents\\GitHub\\Dashboard_Python\\output\\"
+    df.to_csv(outputDirectory + outputFileName, index = False)
 
-    df = createDataFrame(batV, batStatus, extSensor, humidity_SHT, temperatureC_DS, temperatureC_SHT)
-
-    st.header(f"Data Frame from Payload: {fileName}")
+def plotGraph(df):
+    st.header(f"Data Frame from Payload: {inputFileName}")
     st.table(df)
 
     fig = plt.figure(figsize = (8,4))
-    # plt.plot(df.index, df['BatV'], label = "BatV")
-    # plt.plot(df.index, df['BatStatus'], label = "BatStatus")
-    # plt.plot(df.index, df['ExtSensor'], label = "ExtSensor")
-    # plt.plot(df.index, df['Humidity_SHT'], label = "Humidity_SHT")
-    plt.plot(df.index, df['TemperatureC_DS'], label = "TemperatureC_DS")
-    plt.plot(formatedTime, df['TemperatureC_SHT'], label = "TemperatureC_SHT")
+    plt.plot(df['DateTime'], df['TemperatureC_DS'], label = "TemperatureC_DS")
+    plt.plot(df['DateTime'], df['TemperatureC_SHT'], label = "TemperatureC_SHT")
     plt.xlabel("Horário da Leitura (HH:MM:SS)")
     plt.ylabel("Valores de Temperatura (°C)")
     plt.legend()
     st.pyplot(fig)
-    
+
+def start():
+    inputFileDirectory = defineInputFileDirectory()
+    decodedValue, readTime = readInputFile(inputFileDirectory)
+    batV, batStatus, extSensor, humidity_SHT, temperatureC_DS, temperatureC_SHT = extractPayloadData(decodedValue)
+    time = formatTime(readTime)
+    df = createDataFrame(time, batV, batStatus, extSensor, humidity_SHT, temperatureC_DS, temperatureC_SHT)
+    writeCsvFile(df)
+    plotGraph(df)
+
+def main():
+    start()
+
+
