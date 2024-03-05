@@ -10,7 +10,7 @@ Ext_sensor = "Ext_sensor"
 Hum_SHT = "Hum_SHT"
 TempC_DS = "TempC_DS"
 TempC_SHT = "TempC_SHT"
-inputFileName = "20240301.txt"
+inputFileName = "20240305.txt"
 outputFileName = "output.csv"
 inputFileDirectory = "C:\\Users\\Mateus\\Documents\\GitHub\\MQTT_TTN_Python\\"
 outputDirectory = "C:\\Users\\Mateus\\Documents\\GitHub\\Dashboard_Python\\output\\"
@@ -112,6 +112,7 @@ def createFigure(dataFrame, columns, title, unit):
         markers=True,
         template="seaborn"
     )
+    temperatureFig.update_xaxes(tickmode='linear', dtick=max(len(dataFrame) // 10, 1))
     return temperatureFig
 
 # Callback to update the graph every X seconds
@@ -128,9 +129,15 @@ def update_graph(n_intervals):
         batV, batStatus, extSensor, humidity_SHT, temperatureC_DS, temperatureC_SHT = extractPayloadData(decodedValue)
 
         dataFrame = createDataFrame(formattedDateTime, batV, batStatus, extSensor, humidity_SHT, temperatureC_DS, temperatureC_SHT)
+
+        # Convertendo os dados para números
+        dataFrame['TemperatureC_DS'] = pd.to_numeric(dataFrame['TemperatureC_DS'])
+        dataFrame['TemperatureC_SHT'] = pd.to_numeric(dataFrame['TemperatureC_SHT'])
+        dataFrame['Humidity_SHT'] = pd.to_numeric(dataFrame['Humidity_SHT'])
+
         writeCsvFile(dataFrame)
 
-        temperatureFig = createFigure(dataFrame, ['TemperatureC_DS'], "Temperature", " (°C)")
+        temperatureFig = createFigure(dataFrame, ['TemperatureC_DS', 'TemperatureC_SHT'], "Temperature", " (°C)")
         humidityFig = createFigure(dataFrame, ['Humidity_SHT'], "Humidity", " (%)")
 
         return temperatureFig, humidityFig
