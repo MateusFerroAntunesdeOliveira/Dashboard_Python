@@ -19,75 +19,80 @@ outputDirectory = "C:\\Users\\Mateus\\Documents\\GitHub\\Dashboard_Python\\outpu
 app = Dash(__name__)
 
 def defineInputFileDirectory():
-    global inputFileName
-    file = inputFileDirectory + inputFileName
-    return file
+    return inputFileDirectory + inputFileName
 
 def readInputFile(inputFileDirectory):
-    decodedValue = []
-    rawDateTime = []
-    start = []
-    end = []
-    
+    result = {
+        "decodedValue": [],
+        "rawDateTime": [],
+    }
+
     with open(inputFileDirectory, 'r') as file:
         data = file.read().replace('\n', '')
 
-        for i in range(len(data)):
-            if data[i] == "2" and data[i+1] == "0" and data[i+2] == "2" and data[i+3] == "4" and data[i+29] == "Z":
-                rawDateTime.append(data[i:i+23])
-            if data[i] == "{":
-                start.append(i)
-            if data[i] == "}":
-                end.append(i)
+        # Iterar sobre os índices e seus caracteres usando enumerate
+        for i, char in enumerate(data):
+            # Verificar se a data está no formato correto começando com "20" e terminando com "Z"
+            if data[i:i+2] == "20" and data[i+29] == "Z":
+                result["rawDateTime"].append(data[i:i+23])
 
-        for i in range(len(start)):
-            decodedValue.append(data[start[i]+1:end[i]])
-    
-    return decodedValue, rawDateTime
+            if char == "{":
+                start = i
+            elif char == "}":
+                end = i
+                result["decodedValue"].append(data[start+1:end])
+
+    return result["decodedValue"], result["rawDateTime"]
 
 def extractPayloadData(dataCollect):
-    separator = ","
-    batVList = []
-    batStatusList = []
-    extSensorList = []
-    humidity_SHTList = []
-    temperatureC_DSList = []
-    temperatureC_SHTList = []
+    sensor_mappings = {
+        "BatV": [],
+        "Bat_status": [],
+        "Ext_sensor": [],
+        "Hum_SHT": [],
+        "TempC_DS": [],
+        "TempC_SHT": []
+    }
 
-    [i.split(separator) for i in dataCollect]
-    dataCollect = list(map(lambda x: x.replace("'", ""), dataCollect))
-    dataCollect = list(map(lambda x: x.split(separator), dataCollect))
+    for data in dataCollect:
+        # Remover aspas simples e dividir os dados
+        data = data.replace("'", "").split(',')
 
-    for i in range(len(dataCollect)):        
-        for j in range(len(dataCollect[i])):
-            dataCollect[i][j] = dataCollect[i][j].replace(" ", "").split(':')
+        for item in data:
+            # Dividir chave e valor
+            key, value = item.strip().split(':')
 
-            if dataCollect[i][j][0] == BatV:
-                batVList.append(dataCollect[i][j][1])
-
-            if dataCollect[i][j][0] == Bat_status:
-                batStatusList.append(dataCollect[i][j][1])
-
-            if dataCollect[i][j][0] == Ext_sensor:
-                extSensorList.append(dataCollect[i][j][1])
-
-            if dataCollect[i][j][0] == Hum_SHT:
-                humidity_SHTList.append(dataCollect[i][j][1])
-
-            if dataCollect[i][j][0] == TempC_DS:
-                temperatureC_DSList.append(dataCollect[i][j][1])
-
-            if dataCollect[i][j][0] == TempC_SHT:
-                temperatureC_SHTList.append(dataCollect[i][j][1])
-            
-    return batVList, batStatusList, extSensorList, humidity_SHTList, temperatureC_DSList, temperatureC_SHTList
+            # Adicionar valor à lista correspondente
+            if key == "BatV":
+                sensor_mappings["BatV"].append(value)
+            elif key == "Bat_status":
+                sensor_mappings["Bat_status"].append(value)
+            elif key == "Ext_sensor":
+                sensor_mappings["Ext_sensor"].append(value)
+            elif key == "Hum_SHT":
+                sensor_mappings["Hum_SHT"].append(value)
+            elif key == "TempC_DS":
+                sensor_mappings["TempC_DS"].append(value)
+            elif key == "TempC_SHT":
+                sensor_mappings["TempC_SHT"].append(value)
+    
+    return (
+        sensor_mappings["BatV"],
+        sensor_mappings["Bat_status"],
+        sensor_mappings["Ext_sensor"],
+        sensor_mappings["Hum_SHT"],
+        sensor_mappings["TempC_DS"],
+        sensor_mappings["TempC_SHT"]
+    )
 
 def formatTime(rawDateTime):
     formatedTime = []
-    timezone = pytz.timezone('America/Sao_Paulo')  # Defina o fuso horário desejado
+    timezone = pytz.timezone('America/Sao_Paulo')
 
     for i in range(len(rawDateTime)):
         extractedDate = datetime.strptime(rawDateTime[i], "%Y-%m-%dT%H:%M:%S.%f")
+        
+        # Ajustar a data e hora para o fuso horário de São Paulo (GMT-3)
         localizedDate = timezone.localize(extractedDate)
         localizedDate -= timedelta(hours=3)
         formatedTime.append(localizedDate.strftime("%H:%M:%S"))
@@ -117,10 +122,12 @@ def createFigure(dataFrame, columns, title, unit):
         markers=True,
         template="seaborn"
     )
+
+    # Definir a densidade dos marcadores nos eixos x
     temperatureFig.update_xaxes(tickmode='linear', dtick=max(len(dataFrame) // 10, 1))
     return temperatureFig
 
-# Callback to update the graph every X seconds
+# Atualizar os gráficos a cada X segundos
 @app.callback(
     [Output('temperature-graph', 'figure'),
      Output('humidity-graph', 'figure')],
@@ -133,36 +140,42 @@ def update_graph(n_intervals):
         formattedDateTime = formatTime(readTime)
         batV, batStatus, extSensor, humidity_SHT, temperatureC_DS, temperatureC_SHT = extractPayloadData(decodedValue)
 
+        # Criar um DataFrame com os dados processados
         dataFrame = createDataFrame(formattedDateTime, batV, batStatus, extSensor, humidity_SHT, temperatureC_DS, temperatureC_SHT)
 
-        # Convertendo os dados para números
+        # Converter os dados para números
         dataFrame['TemperatureC_DS'] = pd.to_numeric(dataFrame['TemperatureC_DS'])
         dataFrame['TemperatureC_SHT'] = pd.to_numeric(dataFrame['TemperatureC_SHT'])
         dataFrame['Humidity_SHT'] = pd.to_numeric(dataFrame['Humidity_SHT'])
 
         writeCsvFile(dataFrame)
 
+        # Criar os gráficos de temperatura e umidade
         temperatureFig = createFigure(dataFrame, ['TemperatureC_DS', 'TemperatureC_SHT'], "Temperature", " (°C)")
         humidityFig = createFigure(dataFrame, ['Humidity_SHT'], "Humidity", " (%)")
 
         return temperatureFig, humidityFig
 
     except PreventUpdate:
+        # Se não houver atualizações, retorna nada para manter o estado atual dos gráficos
         raise PreventUpdate
 
 def setup():
     app.layout = html.Div([
+        # Definir o intervalo de atualização dos gráficos (intervalo em milissegundos)
         dcc.Interval(
             id='interval-component',
-            interval=60000,  # in milliseconds
+            interval=60000,
             n_intervals=0
         ),
+        # Definir os gráficos de temperatura e umidade
         dcc.Graph(id='temperature-graph', style={'height': '100vh'}),
         dcc.Graph(id='humidity-graph', style={'height': '100vh'})
     ])
 
 def main():
     setup()
+    # Iniciar o servidor Dash em modo de depuração
     app.run_server(debug=True)
 
 if __name__ == "__main__":
