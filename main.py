@@ -1,6 +1,7 @@
-import datetime
 import pandas as pd
 import plotly.express as px
+import pytz
+from datetime import datetime, timedelta
 from dash import Dash, html, dcc, Input, Output
 from dash.exceptions import PreventUpdate
 
@@ -83,9 +84,13 @@ def extractPayloadData(dataCollect):
 
 def formatTime(rawDateTime):
     formatedTime = []
+    timezone = pytz.timezone('America/Sao_Paulo')  # Defina o fuso horário desejado
+
     for i in range(len(rawDateTime)):
-        extractedDate = datetime.datetime.strptime(rawDateTime[i], "%Y-%m-%dT%H:%M:%S.%f")
-        formatedTime.append(extractedDate.strftime("%H:%M:%S"))    
+        extractedDate = datetime.strptime(rawDateTime[i], "%Y-%m-%dT%H:%M:%S.%f")
+        localizedDate = timezone.localize(extractedDate)
+        localizedDate -= timedelta(hours=3)
+        formatedTime.append(localizedDate.strftime("%H:%M:%S"))
     return formatedTime
 
 def createDataFrame(formatedTime, batV, batStatus, extSensor, humidity_SHT, tempC_DS, tempC_SHT):
@@ -149,7 +154,7 @@ def setup():
     app.layout = html.Div([
         dcc.Interval(
             id='interval-component',
-            interval=3000,  # in milliseconds
+            interval=60000,  # in milliseconds
             n_intervals=0
         ),
         dcc.Graph(id='temperature-graph', style={'height': '100vh'}),
