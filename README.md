@@ -1,11 +1,11 @@
 ## Dashboard Python Project
 
 <p align="justify">
-    Projeto de um dashboard em Python que utiliza as bibliotecas Pandas e Dash para visualização de dados.
+    Projeto de um dashboard em Python que utiliza as bibliotecas Pandas, Plotly e Dash para visualização de dados.
 </p>
 
 <p align="justify">
-    O projeto consiste em ler um arquivo .txt a partir de um diretório local (proveniente do resultado do repositório MQTT_TTN_Python), extrair os dados necessários (payload de envio), gerar um arquivo .csv resultante, e então exibir esses dados em um dashboard.
+    O projeto consiste em ler um arquivo .txt a partir de um diretório local (proveniente do resultado do repositório MQTT_TTN_Python), extrair os dados necessários (payload de envio), gerar um arquivo .csv resultante, e então exibir esses dados em um dashboard em tempo real.
 </p>
 
 <p align="justify">
@@ -31,4 +31,4 @@
 <a href="https://github.com/mateusferroantunesdeoliveira"><img src="https://avatars.githubusercontent.com/u/53230135?v=4" width="100px;" alt=""/><br /><sub><b>Mateus Ferro Antunes de Oliveira</b></sub></a>
 
 ## 
-Projeto em desenvolvimento - 03/2024
+Projeto desenvolvido e finalizado em 03/2024
